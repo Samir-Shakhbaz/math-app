@@ -2,7 +2,6 @@ package org.example;
 
 public class OperationFactory {
 
-    // Factory method to get the correct operation class based on the operator
     public static Operation getOperation(String operator) {
         switch (operator) {
             case "+":

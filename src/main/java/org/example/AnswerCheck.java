@@ -12,7 +12,6 @@ public class AnswerCheck {
         this.correctAnswer = correctAnswer;
     }
 
-    // Add these getters to allow Spring to serialize the response properly
     public boolean isCorrect() {
         return isCorrect;
     }

@@ -50,7 +50,6 @@
 
 <h1>Welcome to the Math Test Game</h1>
 
-<!-- Select Operation -->
 <p>Select the type of test:</p>
 <select id="operationSelect">
   <option value="+">Addition</option>
@@ -61,19 +60,15 @@
 
 <button id="startGame" onclick="startGame()">Start Game</button>
 
-<!-- Display Question -->
 <div class="question" id="question">Your question will appear here</div>
 
-<!-- Input for answer -->
 <div class="input-section">
   <input type="number" id="answer" placeholder="Your answer" disabled>
   <button id="submitAnswer" onclick="submitAnswer()" disabled>Submit Answer</button>
 </div>
 
-<!-- Result display -->
 <div id="result"></div>
 
-<!-- Timer display -->
 <div id="timer">Time Left: 20</div>
 
 <script>
@@ -81,28 +76,23 @@
   let timeLeft = 20; // Set the time limit to 20 seconds
   let timerInterval;
 
-  // Start the game and fetch the question
   function startGame() {
       const operation = document.getElementById("operationSelect").value;
 
-      // Reset the result and question
       document.getElementById("result").textContent = "";
       document.getElementById("question").textContent = "Fetching question...";
 
-      // Fetch the question from the backend
       fetch(`/math-game/generate-question?operation=${encodeURIComponent(operation)}`)
           .then(response => response.json())
           .then(data => {
-              // Display the generated question
+
               document.getElementById('question').textContent = `Solve: ${data.num1} ${data.operation} ${data.num2}`;
               correctAnswer = data.correctAnswer;  // Set correctAnswer for later validation
               console.log("Correct answer fetched:", correctAnswer);  // Debugging to ensure it's set
 
-              // Enable inputs once the question is fetched
               document.getElementById('answer').disabled = false;
               document.getElementById('submitAnswer').disabled = false;
 
-              // Now that the question is fetched, start the timer
               startTimer();
           })
           .catch(error => {
@@ -111,18 +101,16 @@
           });
   }
 
-  // Timer logic
+
   function startTimer() {
-    // Reset the timer
+
     timeLeft = 20;
     document.getElementById("timer").textContent = `Time Left: ${timeLeft}`;
 
-    // Clear any previous interval
     if (timerInterval) {
         clearInterval(timerInterval);
     }
 
-    // Start the countdown timer
     timerInterval = setInterval(() => {
         timeLeft--;
         document.getElementById("timer").textContent = `Time Left: ${timeLeft}`;
@@ -132,7 +120,6 @@
             document.getElementById('answer').disabled = true;
             document.getElementById('submitAnswer').disabled = true;
 
-            // Display "Time's up!" and the correct answer
             if (correctAnswer !== undefined) {
                 document.getElementById('result').textContent = `Time's up! The correct answer was: ${correctAnswer}`;
             } else {
@@ -140,17 +127,14 @@
                 console.error("Correct answer was not set.");
             }
         }
-    }, 1000); // Update every second
+    }, 1000);
 }
 
-  // Submit answer and check correctness
   function submitAnswer() {
       const userAnswer = parseInt(document.getElementById('answer').value, 10);  // Parse user input as integer
 
-      // Stop the timer if the user submits the answer
       clearInterval(timerInterval);
 
-      // Send request to check the answer
       fetch(`/math-game/check-answer?userAnswer=${userAnswer}`, {
           method: 'POST'
       })
@@ -158,14 +142,12 @@
       .then(data => {
           console.log('Response from backend:', data);  // Log the response for debugging
 
-          // Display the result based on whether the answer is correct
           if (data.correct) {  // Assuming backend sends "correct"
               document.getElementById('result').textContent = "Correct!";
           } else {
               document.getElementById('result').textContent = `Incorrect! The correct answer was: ${data.correctAnswer}`;
           }
 
-          // Disable inputs after submission
           document.getElementById('answer').disabled = true;
           document.getElementById('submitAnswer').disabled = true;
       })
