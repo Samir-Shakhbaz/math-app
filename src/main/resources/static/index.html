@@ -69,11 +69,11 @@
 
 <div id="result"></div>
 
-<div id="timer">Time Left: 20</div>
+<div id="timer">Time Left: 10</div>
 
 <script>
   let correctAnswer;
-  let timeLeft = 20; // Set the time limit to 20 seconds
+  let timeLeft = 10;
   let timerInterval;
 
   function startGame() {
@@ -85,10 +85,10 @@
       fetch(`/math-game/generate-question?operation=${encodeURIComponent(operation)}`)
           .then(response => response.json())
           .then(data => {
-
+              console.log("Question fetched:", data);
               document.getElementById('question').textContent = `Solve: ${data.num1} ${data.operation} ${data.num2}`;
-              correctAnswer = data.correctAnswer;  // Set correctAnswer for later validation
-              console.log("Correct answer fetched:", correctAnswer);  // Debugging to ensure it's set
+              correctAnswer = data.correctAnswer;
+              console.log("Correct answer fetched:", correctAnswer);
 
               document.getElementById('answer').disabled = false;
               document.getElementById('submitAnswer').disabled = false;
@@ -104,7 +104,7 @@
 
   function startTimer() {
 
-    timeLeft = 20;
+    timeLeft = 10;
     document.getElementById("timer").textContent = `Time Left: ${timeLeft}`;
 
     if (timerInterval) {
@@ -131,7 +131,7 @@
 }
 
   function submitAnswer() {
-      const userAnswer = parseInt(document.getElementById('answer').value, 10);  // Parse user input as integer
+      const userAnswer = parseInt(document.getElementById('answer').value, 10);
 
       clearInterval(timerInterval);
 
@@ -140,9 +140,9 @@
       })
       .then(response => response.json())
       .then(data => {
-          console.log('Response from backend:', data);  // Log the response for debugging
+          console.log('Response from backend:', data);
 
-          if (data.correct) {  // Assuming backend sends "correct"
+          if (data.correct) {
               document.getElementById('result').textContent = "Correct!";
           } else {
               document.getElementById('result').textContent = `Incorrect! The correct answer was: ${data.correctAnswer}`;

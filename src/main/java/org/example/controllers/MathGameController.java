@@ -20,7 +20,7 @@ public class MathGameController {
 
         session.setAttribute("correctAnswer", correctAnswer);
 
-        return new Question(num1, num2, operation);
+        return new Question(num1, num2, operation, correctAnswer);
     }
 
     private int calculateAnswer(int num1, int num2, String operator) {
