@@ -1,50 +1,50 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Math Test Game</title>
-  <style>
-    body {
-        font-family: Arial, sans-serif;
-        text-align: center;
-        margin-top: 50px;
-    }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Math Test Game</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin-top: 50px;
+        }
 
-    .question {
-        font-size: 36px;
-        margin-bottom: 20px;
-    }
+        .question {
+            font-size: 36px;
+            margin-bottom: 20px;
+        }
 
-    .input-section {
-        margin-bottom: 20px;
-    }
+        .input-section {
+            margin-bottom: 20px;
+        }
 
-    #answer {
-        font-size: 24px;
-        width: 300px;
-        height: 50px;
-        padding: 10px;
-    }
+        #answer {
+            font-size: 24px;
+            width: 300px;
+            height: 50px;
+            padding: 10px;
+        }
 
-    #submitAnswer, #startGame {
-        font-size: 24px;
-        width: 300px;
-        height: 60px;
-        margin-top: 20px;
-    }
+        #submitAnswer, #startGame, #startTest {
+            font-size: 24px;
+            width: 300px;
+            height: 60px;
+            margin-top: 20px;
+        }
 
-    #result {
-        font-size: 36px;
-        margin-top: 20px;
-    }
+        #result {
+            font-size: 36px;
+            margin-top: 20px;
+        }
 
-    #timer {
-        font-size: 72px;
-        margin-top: 20px;
-        color: red;
-    }
-  </style>
+        #timer {
+            font-size: 72px;
+            margin-top: 20px;
+            color: red;
+        }
+    </style>
 </head>
 <body>
 
@@ -52,111 +52,205 @@
 
 <p>Select the type of test:</p>
 <select id="operationSelect">
-  <option value="+">Addition</option>
-  <option value="-">Subtraction</option>
-  <option value="*">Multiplication</option>
-  <option value="/">Division</option>
+    <option value="+">Addition</option>
+    <option value="-">Subtraction</option>
+    <option value="*">Multiplication</option>
+    <option value="/">Division</option>
 </select>
 
 <button id="startGame" onclick="startGame()">Start Game</button>
 
+<button id="showPlayers" onclick="fetchPlayerScores()">Show Players and Scores</button>
+
+<div id="result"></div>
+
+<button id="startTest" onclick="startTest()">Start 10-Question Test</button>
+
 <div class="question" id="question">Your question will appear here</div>
 
 <div class="input-section">
-  <input type="number" id="answer" placeholder="Your answer" disabled>
-  <button id="submitAnswer" onclick="submitAnswer()" disabled>Submit Answer</button>
+    <input type="number" id="answer" placeholder="Your answer" disabled>
+    <button id="submitAnswer" onclick="submitAnswer()" disabled>Submit Answer</button>
 </div>
 
 <div id="result"></div>
 
-<div id="timer">Time Left: 10</div>
+<div id="timer">Time Left: 30</div>
+
 
 <script>
-  let correctAnswer;
-  let timeLeft = 10;
-  let timerInterval;
+    let correctAnswer;
+    let timeLeft = 30;
+    let timerInterval;
+    let questionsAsked = 0;
+    let correctAnswers = 0;
+    let isTestMode = false;
 
-  function startGame() {
-      const operation = document.getElementById("operationSelect").value;
+    function startGame() {
+        isTestMode = false; // Regular game mode
+        questionsAsked = 0;
+        correctAnswers = 0;
 
-      document.getElementById("result").textContent = "";
-      document.getElementById("question").textContent = "Fetching question...";
-
-      fetch(`/math-game/generate-question?operation=${encodeURIComponent(operation)}`)
-          .then(response => response.json())
-          .then(data => {
-              console.log("Question fetched:", data);
-              document.getElementById('question').textContent = `Solve: ${data.num1} ${data.operation} ${data.num2}`;
-              correctAnswer = data.correctAnswer;
-              console.log("Correct answer fetched:", correctAnswer);
-
-              document.getElementById('answer').disabled = false;
-              document.getElementById('submitAnswer').disabled = false;
-
-              startTimer();
-          })
-          .catch(error => {
-              console.error('Error fetching the question:', error);
-              document.getElementById('question').textContent = "Error fetching the question.";
-          });
-  }
-
-
-  function startTimer() {
-
-    timeLeft = 10;
-    document.getElementById("timer").textContent = `Time Left: ${timeLeft}`;
-
-    if (timerInterval) {
-        clearInterval(timerInterval);
+        fetchQuestion();
     }
 
-    timerInterval = setInterval(() => {
-        timeLeft--;
+    function startTest() {
+        isTestMode = true; // 10-question test mode
+        questionsAsked = 0;
+        correctAnswers = 0;
+
+        fetchQuestion();
+    }
+
+    function fetchQuestion() {
+        const operation = document.getElementById("operationSelect").value;
+
+        document.getElementById("result").textContent = "";
+        document.getElementById("question").textContent = "Fetching question...";
+
+        fetch(`/math-game/generate-question?operation=${encodeURIComponent(operation)}`)
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('question').textContent = `Solve: ${data.num1} ${data.operation} ${data.num2}`;
+                correctAnswer = data.correctAnswer;
+                document.getElementById('answer').disabled = false;
+                document.getElementById('submitAnswer').disabled = false;
+                startTimer();
+            })
+            .catch(error => {
+                console.error('Error fetching the question:', error);
+                document.getElementById('question').textContent = "Error fetching the question.";
+            });
+    }
+
+    function startTimer() {
+        timeLeft = 30;
         document.getElementById("timer").textContent = `Time Left: ${timeLeft}`;
 
-        if (timeLeft <= 0) {
+        if (timerInterval) {
             clearInterval(timerInterval);
+        }
+
+        timerInterval = setInterval(() => {
+            timeLeft--;
+            document.getElementById("timer").textContent = `Time Left: ${timeLeft}`;
+
+            if (timeLeft <= 0) {
+                clearInterval(timerInterval);
+                document.getElementById('answer').disabled = true;
+                document.getElementById('submitAnswer').disabled = true;
+
+                if (correctAnswer !== undefined) {
+                    document.getElementById('result').textContent = `Time's up! The correct answer was: ${correctAnswer}`;
+                } else {
+                    document.getElementById('result').textContent = "Time's up! The correct answer is not available.";
+                    console.error("Correct answer was not set.");
+                }
+
+                if (isTestMode) {
+                    nextQuestionInTest();
+                }
+            }
+        }, 1000);
+    }
+
+    function submitAnswer() {
+        const userAnswer = parseInt(document.getElementById('answer').value, 10);
+
+        clearInterval(timerInterval);
+
+        fetch(`/math-game/check-answer?userAnswer=${userAnswer}`, {
+            method: 'POST'
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.correct) {
+                correctAnswers++;
+                document.getElementById('result').textContent = "Correct!";
+            } else {
+                document.getElementById('result').textContent = `Incorrect! The correct answer was: ${data.correctAnswer}`;
+            }
+
             document.getElementById('answer').disabled = true;
             document.getElementById('submitAnswer').disabled = true;
 
-            if (correctAnswer !== undefined) {
-                document.getElementById('result').textContent = `Time's up! The correct answer was: ${correctAnswer}`;
-            } else {
-                document.getElementById('result').textContent = "Time's up! The correct answer is not available.";
-                console.error("Correct answer was not set.");
+            if (isTestMode) {
+                nextQuestionInTest();
             }
+        })
+        .catch(error => {
+            console.error('Error checking the answer:', error);
+            document.getElementById('result').textContent = "Error checking the answer.";
+        });
+    }
+
+<!--    function nextQuestionInTest() {-->
+<!--        questionsAsked++;-->
+
+<!--        if (questionsAsked >= 10) {-->
+<!--            const grade = calculateGrade(correctAnswers);-->
+<!--            document.getElementById('result').textContent += ` Test completed! You scored ${correctAnswers} out of 10. Your grade is: ${grade}`;-->
+<!--        } else {-->
+<!--            fetchQuestion();-->
+<!--        }-->
+<!--    }-->
+
+function nextQuestionInTest() {
+    questionsAsked++;
+
+    if (questionsAsked >= 10) {
+        let playerName = prompt("Enter your name (optional):");
+
+        // If the player doesn't enter a name, we send an empty string to the backend
+        if (playerName === null || playerName.trim() === "") {
+            playerName = ""; // Send as empty string if no name is provided
         }
-    }, 1000);
+
+        const grade = calculateGrade(correctAnswers);
+
+        document.getElementById('result').textContent += ` Test completed! You scored ${correctAnswers} out of 10. Your grade is: ${grade}`;
+
+        // sending the result to the server to save in MongoDB
+        fetch(`/math-game/complete-test?playerName=${encodeURIComponent(playerName)}&correctAnswers=${correctAnswers}`, {
+            method: 'POST'
+        })
+        .then(response => {
+            console.log("Game result saved successfully.");
+        })
+        .catch(error => {
+            console.error('Error saving the game result:', error);
+        });
+    } else {
+        fetchQuestion();
+    }
 }
 
-  function submitAnswer() {
-      const userAnswer = parseInt(document.getElementById('answer').value, 10);
 
-      clearInterval(timerInterval);
+    function calculateGrade(correctAnswers) {
+        const score = (correctAnswers / 10) * 100;
+        if (score >= 90) return "A";
+        if (score >= 80) return "B";
+        if (score >= 70) return "C";
+        if (score >= 60) return "D";
+        return "F";
+    }
 
-      fetch(`/math-game/check-answer?userAnswer=${userAnswer}`, {
-          method: 'POST'
-      })
-      .then(response => response.json())
-      .then(data => {
-          console.log('Response from backend:', data);
+    function fetchPlayerScores() {
+    fetch('/math-game/players')
+        .then(response => response.json())
+        .then(data => {
+            let playerList = "<h3>Player Scores</h3><ul>";
+            data.forEach(player => {
+                playerList += `<li>${player.playerName}: ${player.correctAnswers} correct answers, Grade: ${player.grade}</li>`;
+            });
+            playerList += "</ul>";
+            document.getElementById('result').innerHTML = playerList;
+        })
+        .catch(error => {
+            console.error('Error fetching player scores:', error);
+        });
+}
 
-          if (data.correct) {
-              document.getElementById('result').textContent = "Correct!";
-          } else {
-              document.getElementById('result').textContent = `Incorrect! The correct answer was: ${data.correctAnswer}`;
-          }
-
-          document.getElementById('answer').disabled = true;
-          document.getElementById('submitAnswer').disabled = true;
-      })
-      .catch(error => {
-          console.error('Error checking the answer:', error);
-          document.getElementById('result').textContent = "Error checking the answer.";
-      });
-  }
 </script>
-
 </body>
 </html>

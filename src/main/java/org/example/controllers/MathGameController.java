@@ -1,14 +1,24 @@
 package org.example.controllers;
 
 import org.example.AnswerCheck;
+import org.example.GameResult;
 import org.example.Question;
+import org.example.repositories.GameResultRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import jakarta.servlet.http.HttpSession;
+
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.List;
 import java.util.Random;
 
 @RestController
 @RequestMapping("/math-game")
 public class MathGameController {
+
+    @Autowired
+    private GameResultRepository gameResultRepository;
 
     private Random random = new Random();
 
@@ -41,7 +51,7 @@ public class MathGameController {
 
     @PostMapping("/check-answer")
     public AnswerCheck checkAnswer(@RequestParam int userAnswer, HttpSession session) {
-        // retrieving correct answer from the session
+
         Integer correctAnswer = (Integer) session.getAttribute("correctAnswer");
 
         System.out.println("User Answer: " + userAnswer);
@@ -58,5 +68,47 @@ public class MathGameController {
         return new AnswerCheck(isCorrect, correctAnswer);
     }
 
+    // calculate grade and save result to MongoDB
+    @PostMapping("/complete-test")
+    public void completeTest(@RequestParam(required = false) String playerName, @RequestParam int correctAnswers) {
+        String grade = calculateGrade(correctAnswers);
+
+        if (playerName == null || playerName.trim().isEmpty()) {
+            playerName = "Anonymous";
+        }
+
+        // save the result to MongoDB
+        GameResult gameResult = new GameResult(
+                playerName,
+                correctAnswers,
+                grade,
+                "test",
+                LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))
+        );
+        // log to check if repository is saving correctly
+        System.out.println("Saving to MongoDB: " + gameResult);
+        gameResultRepository.save(gameResult);
+    }
+
+
+    private String calculateGrade(int correctAnswers) {
+        int score = (correctAnswers * 100) / 10;
+        if (score >= 90) {
+            return "A";
+        } else if (score >= 80) {
+            return "B";
+        } else if (score >= 70) {
+            return "C";
+        } else if (score >= 60) {
+            return "D";
+        } else {
+            return "F";
+        }
+    }
+
+    @GetMapping("/players")
+    public List<GameResult> getAllPlayersOrderedByScore() {
+        return gameResultRepository.findAllByOrderByCorrectAnswersDesc();
+    }
 
 }
