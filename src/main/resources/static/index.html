@@ -44,6 +44,21 @@
             margin-top: 20px;
             color: red;
         }
+
+        /* Center the images */
+        .image-container {
+            margin-top: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        #correctImage, #wrongImage {
+            display: none;
+            width: 300px;  /* Twice as big */
+            height: 300px; /* Twice as big */
+            margin: 0 10px; /* Space between images if both show */
+        }
     </style>
 </head>
 <body>
@@ -73,10 +88,13 @@
     <button id="submitAnswer" onclick="submitAnswer()" disabled>Submit Answer</button>
 </div>
 
-<div id="result"></div>
+<!-- Centered image container -->
+<div class="image-container">
+    <img id="correctImage" src="/thor_giving_thumbs_up.jpeg" alt="Correct!">
+    <img id="wrongImage" src="/hades_minotaur_mocking.jpeg" alt="Incorrect!">
+</div>
 
 <div id="timer">Time Left: 30</div>
-
 
 <script>
     let correctAnswer;
@@ -167,8 +185,23 @@
             if (data.correct) {
                 correctAnswers++;
                 document.getElementById('result').textContent = "Correct!";
+                document.getElementById('correctImage').style.display = 'block';
+                 // hide the image after 5 seconds
+    setTimeout(() => {
+        document.getElementById('correctImage').style.display = 'none';
+    }, 5000);
             } else {
                 document.getElementById('result').textContent = `Incorrect! The correct answer was: ${data.correctAnswer}`;
+
+                  // Show the wrong answer image
+            document.getElementById('wrongImage').style.display = 'block';
+            document.getElementById('correctImage').style.display = 'none';  // Hide correct answer image if visible
+
+            // Hide the wrong image after 5 seconds
+            setTimeout(() => {
+                document.getElementById('wrongImage').style.display = 'none';
+            }, 5000);
+
             }
 
             document.getElementById('answer').disabled = true;
