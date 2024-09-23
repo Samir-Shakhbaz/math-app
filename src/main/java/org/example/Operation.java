@@ -1,5 +1,6 @@
 package org.example;
 
 public interface Operation {
-    int[] generateQuestion();
+//    int[] generateQuestion();
+    Question generateQuestion();
 }

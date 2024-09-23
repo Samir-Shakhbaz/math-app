@@ -28,9 +28,12 @@ public class MathGameController {
         int num2 = new Random().nextInt(10) + 1;
         int correctAnswer = calculateAnswer(num1, num2, operation);
 
+        // calculate the dividend only for division
+        int dividend = ("/".equals(operation)) ? num1 * num2 : 0;
+
         session.setAttribute("correctAnswer", correctAnswer);
 
-        return new Question(num1, num2, operation, correctAnswer);
+        return new Question(num1, num2, operation, correctAnswer, dividend);
     }
 
     private int calculateAnswer(int num1, int num2, String operator) {
@@ -42,7 +45,7 @@ public class MathGameController {
             case "*":
                 return num1 * num2;
             case "/":
-                return num2 != 0 ? num1 / num2 : 0; //avoiding division by zero
+               return num1;
             default:
                 throw new IllegalArgumentException("Invalid operator: " + operator);
         }
@@ -68,7 +71,6 @@ public class MathGameController {
         return new AnswerCheck(isCorrect, correctAnswer);
     }
 
-    // calculate grade and save result to MongoDB
     @PostMapping("/complete-test")
     public void completeTest(@RequestParam(required = false) String playerName, @RequestParam int correctAnswers) {
         String grade = calculateGrade(correctAnswers);
@@ -77,7 +79,6 @@ public class MathGameController {
             playerName = "Anonymous";
         }
 
-        // save the result to MongoDB
         GameResult gameResult = new GameResult(
                 playerName,
                 correctAnswers,
@@ -85,7 +86,7 @@ public class MathGameController {
                 "test",
                 LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))
         );
-        // log to check if repository is saving correctly
+
         System.out.println("Saving to MongoDB: " + gameResult);
         gameResultRepository.save(gameResult);
     }
